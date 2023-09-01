@@ -5,7 +5,9 @@ from keras.models import load_model
 from PIL import Image
 
 
-categories = ["c1", "c2", "c3", "c4", "c5", "c6", "c7", "h", "i", "j", "k", "l", "m", "n", "o", "dosa", "q", "r", "s", "t", "u", "v","w","x", "y", "z"]
+categories = ["Bisibelebath", "Biryani",  "Butternaan", "chaat", "Idly", "Chappati", "Halwa", 
+              "Gulab Jamun", "Dhokla", "Dosa", "Vada Pav", "Upma", "Noodles", "Tandoori Chicken", 
+              "Poori", "Kathi Roll", "Samosa", "Meduvadai", "Paniyaram", "Ven Pongal"]
 
 img_size = 256
 model = load_model('./cnn_model.hdf5')
