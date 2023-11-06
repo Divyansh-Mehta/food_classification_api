@@ -1,0 +1,4 @@
+flask == 2.3.2
+numpy == 1.26.1
+ultralytics == 8.0.207
+Pillow == 9.0.1
