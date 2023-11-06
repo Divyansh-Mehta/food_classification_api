@@ -1,36 +1,41 @@
-from flask import Flask, jsonify, request
-import cv2
-import numpy as np
-from keras.models import load_model
+from flask import Flask, request, jsonify
 from PIL import Image
+import io
+from ultralytics import YOLO
+import numpy as np
 
 
-categories = ["Bisibelebath", "Biryani",  "Butternaan", "chaat", "Idly", "Chappati", "Halwa", 
-              "Gulab Jamun", "Dhokla", "Dosa", "Vada Pav", "Upma", "Noodles", "Tandoori Chicken", 
-              "Poori", "Kathi Roll", "Samosa", "Meduvadai", "Paniyaram", "Ven Pongal"]
-
-img_size = 256
-model = load_model('./cnn_model.hdf5')
-
-def preprocess_image(file):
-    img = Image.open(file.stream)
-    img = np.array(img)
-    img = cv2.resize(img, (img_size, img_size))
-    img = img / 255.0  # Normalize the image
-    img = np.expand_dims(img, axis=0)
-    return img
+# categories = ["Bisibelebath", "Biryani",  "Butternaan", "chaat", "Idly", "Chappati", "Halwa", 
+#               "Gulab Jamun", "Dhokla", "Dosa", "Vada Pav", "Upma", "Noodles", "Tandoori Chicken", 
+#               "Poori", "Kathi Roll", "Samosa", "Meduvadai", "Paniyaram", "Ven Pongal"]
 
 
 app = Flask(__name__)
+model = YOLO("./best.pt")
 
-@app.route("/", methods=["POST"])
-def predict_image_class():
-    file = request.files['image']
-    img = preprocess_image(file)
-    prediction = model.predict(img)
-    predicted_class = np.argmax(prediction)
-    return jsonify({'msg': 'success', 'size': categories[predicted_class]})
+def predict_image(img):
+    results = model.predict(img)
+    names_dict = results[0].names
+    probs = results[0].probs.data.tolist()
+    return names_dict[np.argmax(probs)]
+
+
+@app.route('/classify', methods=['POST'])
+def classify_image():
+    try:
+        if 'image' not in request.files:
+            return jsonify({'error': 'No image provided'})
+
+        image = request.files['image']
+        img = Image.open(io.BytesIO(image.read()))
+
+        # Make a prediction
+        prediction = predict_image(img)
+
+        # Return the prediction as JSON
+        return jsonify({'prediction': prediction})
+    except Exception as e:
+        return jsonify({'error': str("hello" + e)})
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0")
-
